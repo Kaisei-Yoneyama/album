@@ -1,13 +1,13 @@
 'use strict';
 
 function element(strings, ...values) {
-  const template = document.createElement('template')
+  const template = document.createElement('template');
 
   template.innerHTML = String.raw({ raw: strings }, ...values.map((value) => {
-    return typeof value === 'string' ? escape(value) : value
-  }))
+    return typeof value === 'string' ? escape(value) : value;
+  }));
 
-  return template.content.firstElementChild
+  return template.content.firstElementChild;
 }
 
 function escape(string) {
@@ -17,5 +17,5 @@ function escape(string) {
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;')
-    .replace(/`/g, '&#x60;')
+    .replace(/`/g, '&#x60;');
 }
