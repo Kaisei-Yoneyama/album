@@ -1,6 +1,6 @@
 'use strict';
 
-addEventListener('load', (event) => {
+addEventListener('load', () => {
   const mediaQueryList = matchMedia('(prefers-color-scheme: dark)');
 
   mediaQueryList.addEventListener('change', (event) => {
