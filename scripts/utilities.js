@@ -14,7 +14,6 @@
  * document.body.appendChild(heading);
  * 
  * @throws {Error} - トップレベルの要素が 2 つ以上の場合
- * @throws {TypeError} - テンプレートリテラルの構文が不正な場合
  * @param {TemplateStringsArray} strings - HTML 文字列
  * @param {...any} substitutions - 埋め込み式
  * @returns {?Element} - HTML 要素
