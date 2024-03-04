@@ -117,48 +117,63 @@ function displayEntry(entry) {
   const column = element`
     <div class="col" data-key="${entry.id}">
       <div class="card">
+        ${entry.photos.length > 1 ? createCarousel(entry.id, entry.photos) : createImage(entry.photos[0])}
         <div class="card-body">
           <p class="card-text">${entry.caption}</p>
           <div class="d-flex justify-content-between align-items-center">
-            <small style="cursor: default;" class="text-muted" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<small>${dayjs(entry.timestamp).tz().format('YYYY年MM月DD日 HH時mm分ss秒')}</small>">${dayjs(entry.timestamp).tz().fromNow()}</small>
-            <button type="button" class="btn btn-sm btn-outline-danger" data-primary-key="${entry.id}" onclick="deleteEntry(this.dataset.primaryKey);"><i class="bi bi-trash"></i></button>
+            ${createTooltip(entry.timestamp)}
+            ${createDeleteButton(entry.id)}
           </div>
         </div>
       </div>
     </div>
   `;
 
-  // フォトが 2 枚以上ある場合はカルーセルで表示する
-  if (entry.photos.length > 1) {
-    const carousel = element`
-      <div id="carousel-${entry.id}" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner"></div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carousel-${entry.id}" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carousel-${entry.id}" data-bs-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
-      </div>
-    `;
-    const carouselItems = entry.photos.map((photo, index) => element`
-      <div class="${index ? 'carousel-item' : 'carousel-item active'}" data-bs-interval="3000">
-        <img src="${URL.createObjectURL(photo)}" onload="window.URL.revokeObjectURL(this.src);" class="d-block w-100" alt="${photo.name}">
-      </div>
-    `);
-    carousel.firstElementChild.append(...carouselItems);
-    column.firstElementChild.prepend(carousel);
-  } else {
-    const [ photo ] = entry.photos;
-    const image = element`<img src="${URL.createObjectURL(photo)}" onload="window.URL.revokeObjectURL(this.src);" class="card-img-top" alt="${photo.name}">`;
-    column.firstElementChild.prepend(image);
-  }
-
-  // ツールチップを初期化する
-  const tooltip = column.querySelector('[data-bs-toggle="tooltip"]');
-  new bootstrap.Tooltip(tooltip);
-
   album.prepend(column);
+}
+
+function createCarousel(id, photos) {
+  const carouselItems = photos.map((photo, index) => {
+    const image = element`<img src="${URL.createObjectURL(photo)}" class="d-block w-100" alt="${photo.name}">`;
+    image.addEventListener('load', event => URL.revokeObjectURL(event.currentTarget.src));
+
+    const carouselItem = element`<div class="${index ? 'carousel-item' : 'carousel-item active'}" data-bs-interval="3000">${image}</div>`;
+    return carouselItem;
+  });
+
+  const carousel = element`
+    <div id="carousel-${id}" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">${carouselItems}</div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carousel-${id}" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carousel-${id}" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  `;
+
+  return carousel;
+}
+
+function createImage(photo) {
+  const image = element`<img src="${URL.createObjectURL(photo)}" class="card-img-top" alt="${photo.name}">`;
+  image.addEventListener('load', event => URL.revokeObjectURL(event.currentTarget.src));
+  return image;
+}
+
+function createTooltip(timestamp) {
+  const relativeTime = dayjs(timestamp).tz().fromNow();
+  const absoluteTime = dayjs(timestamp).tz().format('YYYY年MM月DD日 HH時mm分ss秒');
+  const tooltip = element`<small style="cursor: default;" class="text-muted" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<small>${absoluteTime}</small>">${relativeTime}</small>`;
+  new bootstrap.Tooltip(tooltip);
+  return tooltip;
+}
+
+function createDeleteButton(id) {
+  const button = element`<button type="button" class="btn btn-sm btn-outline-danger" data-primary-key="${id}"><i class="bi bi-trash"></i></button>`;
+  button.addEventListener('click', event => deleteEntry(event.currentTarget.dataset.primaryKey));
+  return button;
 }
