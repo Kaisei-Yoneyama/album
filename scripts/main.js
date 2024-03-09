@@ -43,7 +43,8 @@ addEventListener('load', () => {
       const cursor = event.target.result;
 
       if (cursor) {
-        displayEntry(cursor.value);
+        const column = Column({ entry: cursor.value });
+        album.prepend(column);
         cursor.continue();
       }
     });
@@ -84,7 +85,8 @@ function addEntry(entry) {
   });
 
   transaction.addEventListener('complete', () => {
-    displayEntry(entry);
+    const column = Column({ entry });
+    album.prepend(column);
   });
 
   transaction.addEventListener('abort', (event) => {
@@ -109,46 +111,44 @@ function deleteEntry(primaryKey) {
   });
 }
 
-/**
- * エントリーをアルバムに表示する
- * @param {Entry} entry - エントリー
- */
-function displayEntry(entry) {
+function Column(props) {
   const column = html`
-    <div class="col" data-key="${entry.id}">
+    <div class="col" data-key="${props.entry.id}">
       <div class="card">
-        ${entry.photos.length > 1 ? createCarousel(entry.id, entry.photos) : createImage(entry.photos[0])}
+        ${props.entry.photos.length > 1
+          ? Carousel({ photos: props.entry.photos })
+          : CardImage({ photo: props.entry.photos[0] })}
         <div class="card-body">
-          <p class="card-text">${entry.caption}</p>
+          <p class="card-text">${props.entry.caption}</p>
           <div class="d-flex justify-content-between align-items-center">
-            ${createTooltip(entry.timestamp)}
-            ${createDeleteButton(entry.id)}
+            ${TimestampTooltip({ time: props.entry.timestamp })}
+            ${DeleteButton({ id: props.entry.id })}
           </div>
         </div>
       </div>
     </div>
   `;
 
-  album.prepend(column);
+  return column;
 }
 
-function createCarousel(id, photos) {
-  const carouselItems = photos.map((photo, index) => {
-    const image = html`<img src="${URL.createObjectURL(photo)}" class="d-block w-100" alt="${photo.name}">`;
-    image.addEventListener('load', event => URL.revokeObjectURL(event.currentTarget.src));
-
-    const carouselItem = html`<div class="${index ? 'carousel-item' : 'carousel-item active'}" data-bs-interval="3000">${image}</div>`;
+function Carousel(props) {
+  const carouselItems = props.photos.map((photo, index) => {
+    const image = CardImage({ photo, className: 'd-block w-100' });
+    const carouselItem = html`<div class="${index ? 'carousel-item' : 'carousel-item active'}" data-bs-interval="${props.interval || 3000}">${image}</div>`;
     return carouselItem;
   });
 
+  const identifier = `carousel-${crypto.randomUUID()}`;
+
   const carousel = html`
-    <div id="carousel-${id}" class="carousel slide" data-bs-ride="carousel">
+    <div id="${identifier}" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-inner">${carouselItems}</div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carousel-${id}" data-bs-slide="prev">
+      <button class="carousel-control-prev" type="button" data-bs-target="#${identifier}" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carousel-${id}" data-bs-slide="next">
+      <button class="carousel-control-next" type="button" data-bs-target="#${identifier}" data-bs-slide="next">
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Next</span>
       </button>
@@ -158,22 +158,33 @@ function createCarousel(id, photos) {
   return carousel;
 }
 
-function createImage(photo) {
-  const image = html`<img src="${URL.createObjectURL(photo)}" class="card-img-top" alt="${photo.name}">`;
-  image.addEventListener('load', event => URL.revokeObjectURL(event.currentTarget.src));
+function CardImage(props) {
+  const image = html`<img src="${URL.createObjectURL(props.photo)}" class="${props.className || 'card-img-top'}" alt="${props.photo.name}">`;
+
+  image.addEventListener('load', (event) => {
+    // 画像が読み込まれたらオブジェクト URL を解放する
+    URL.revokeObjectURL(event.currentTarget.src);
+  });
+
   return image;
 }
 
-function createTooltip(timestamp) {
-  const relativeTime = dayjs(timestamp).tz().fromNow();
-  const absoluteTime = dayjs(timestamp).tz().format('YYYY年MM月DD日 HH時mm分ss秒');
+function TimestampTooltip(props) {
+  const relativeTime = dayjs(props.time).tz().fromNow();
+  const absoluteTime = dayjs(props.time).tz().format('YYYY年MM月DD日 HH時mm分ss秒');
+
   const tooltip = html`<small style="cursor: default;" class="text-muted" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<small>${absoluteTime}</small>">${relativeTime}</small>`;
   new bootstrap.Tooltip(tooltip);
+
   return tooltip;
 }
 
-function createDeleteButton(id) {
-  const button = html`<button type="button" class="btn btn-sm btn-outline-danger" data-primary-key="${id}"><i class="bi bi-trash"></i></button>`;
-  button.addEventListener('click', event => deleteEntry(event.currentTarget.dataset.primaryKey));
+function DeleteButton(props) {
+  const button = html`<button type="button" class="btn btn-sm btn-outline-danger" data-primary-key="${props.id}"><i class="bi bi-trash"></i></button>`;
+
+  button.addEventListener('click', (event) => {
+    deleteEntry(event.currentTarget.dataset.primaryKey);
+  });
+
   return button;
 }
