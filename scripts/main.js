@@ -114,7 +114,7 @@ function deleteEntry(primaryKey) {
  * @param {Entry} entry - エントリー
  */
 function displayEntry(entry) {
-  const column = element`
+  const column = html`
     <div class="col" data-key="${entry.id}">
       <div class="card">
         ${entry.photos.length > 1 ? createCarousel(entry.id, entry.photos) : createImage(entry.photos[0])}
@@ -134,14 +134,14 @@ function displayEntry(entry) {
 
 function createCarousel(id, photos) {
   const carouselItems = photos.map((photo, index) => {
-    const image = element`<img src="${URL.createObjectURL(photo)}" class="d-block w-100" alt="${photo.name}">`;
+    const image = html`<img src="${URL.createObjectURL(photo)}" class="d-block w-100" alt="${photo.name}">`;
     image.addEventListener('load', event => URL.revokeObjectURL(event.currentTarget.src));
 
-    const carouselItem = element`<div class="${index ? 'carousel-item' : 'carousel-item active'}" data-bs-interval="3000">${image}</div>`;
+    const carouselItem = html`<div class="${index ? 'carousel-item' : 'carousel-item active'}" data-bs-interval="3000">${image}</div>`;
     return carouselItem;
   });
 
-  const carousel = element`
+  const carousel = html`
     <div id="carousel-${id}" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-inner">${carouselItems}</div>
       <button class="carousel-control-prev" type="button" data-bs-target="#carousel-${id}" data-bs-slide="prev">
@@ -159,7 +159,7 @@ function createCarousel(id, photos) {
 }
 
 function createImage(photo) {
-  const image = element`<img src="${URL.createObjectURL(photo)}" class="card-img-top" alt="${photo.name}">`;
+  const image = html`<img src="${URL.createObjectURL(photo)}" class="card-img-top" alt="${photo.name}">`;
   image.addEventListener('load', event => URL.revokeObjectURL(event.currentTarget.src));
   return image;
 }
@@ -167,13 +167,13 @@ function createImage(photo) {
 function createTooltip(timestamp) {
   const relativeTime = dayjs(timestamp).tz().fromNow();
   const absoluteTime = dayjs(timestamp).tz().format('YYYY年MM月DD日 HH時mm分ss秒');
-  const tooltip = element`<small style="cursor: default;" class="text-muted" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<small>${absoluteTime}</small>">${relativeTime}</small>`;
+  const tooltip = html`<small style="cursor: default;" class="text-muted" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<small>${absoluteTime}</small>">${relativeTime}</small>`;
   new bootstrap.Tooltip(tooltip);
   return tooltip;
 }
 
 function createDeleteButton(id) {
-  const button = element`<button type="button" class="btn btn-sm btn-outline-danger" data-primary-key="${id}"><i class="bi bi-trash"></i></button>`;
+  const button = html`<button type="button" class="btn btn-sm btn-outline-danger" data-primary-key="${id}"><i class="bi bi-trash"></i></button>`;
   button.addEventListener('click', event => deleteEntry(event.currentTarget.dataset.primaryKey));
   return button;
 }

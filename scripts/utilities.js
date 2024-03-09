@@ -10,7 +10,7 @@
  * - 上記以外 - そのまま埋め込む
  * 
  * @example
- * const heading = element`<h1>Hello, World!</h1>`;
+ * const heading = html`<h1>Hello, World!</h1>`;
  * document.body.appendChild(heading);
  * 
  * @throws {Error} - トップレベルの要素が 2 つ以上の場合
@@ -19,7 +19,7 @@
  * @param {...any} substitutions - 埋め込み式
  * @returns {?Element} - HTML 要素
  */
-function element(strings, ...substitutions) {
+function html(strings, ...substitutions) {
   const template = document.createElement('template');
   const slots = [];
 
